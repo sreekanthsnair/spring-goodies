@@ -31,10 +31,10 @@ public class FormTokenInterceptor extends HandlerInterceptorAdapter {
 	
 	@Override
 	public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler) throws Exception {
-		if (handler != null && handler instanceof HandlerMethod) {
+		if (handler != null && handler instanceof HandlerMethod && ((HandlerMethod) handler).getMethodAnnotation(CheckToken.class) != null) {
 			final HttpSession session = request.getSession();
 			synchronized (session) {
-				if (((HandlerMethod) handler).getMethodAnnotation(CheckToken.class) != null && !hasValidToken(request, session)) {
+				if (!hasValidToken(request, session)) {
 					response.sendRedirect(request.getContextPath() + this.errorPage);
 					return false;
 				}
