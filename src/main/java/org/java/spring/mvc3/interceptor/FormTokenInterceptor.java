@@ -34,7 +34,9 @@ public class FormTokenInterceptor extends HandlerInterceptorAdapter {
 		if (handler != null && handler instanceof HandlerMethod && ((HandlerMethod) handler).getMethodAnnotation(CheckToken.class) != null) {
 			final HttpSession session = request.getSession();
 			synchronized (session) {
-				if (!hasValidToken(request, session)) {
+				if (hasValidToken(request, session)) {
+					removeToken(request,session);
+				} else {
 					response.sendRedirect(request.getContextPath() + this.errorPage);
 					return false;
 				}
@@ -52,14 +54,8 @@ public class FormTokenInterceptor extends HandlerInterceptorAdapter {
 				addToken(request, session);
 			} else if (handlerMethod.getMethodAnnotation(CheckToken.class) != null) {
 				final BindingResult bindingResult = getBindingResult(modelAndView);
-				if (bindingResult != null && !bindingResult.hasErrors()) {
-					synchronized (session) {
-						removeToken(request,session);
-					}
-				} else {
-					synchronized (session) {
-						addToken(request, session);
-					}
+				if (bindingResult != null && bindingResult.hasErrors()) {
+					addToken(request, session);
 				}
 			}  
 		}
