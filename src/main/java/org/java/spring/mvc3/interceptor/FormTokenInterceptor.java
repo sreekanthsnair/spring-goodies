@@ -48,15 +48,18 @@ public class FormTokenInterceptor extends HandlerInterceptorAdapter {
 		if (handler != null && handler instanceof HandlerMethod) {
 			final HandlerMethod handlerMethod = (HandlerMethod) handler;
 			final HttpSession session = request.getSession();
-			final String invokingControllerName = handlerMethod.getBean().getClass().getSimpleName();
 			if (handlerMethod.getMethodAnnotation(AddToken.class) != null) {
-				addToken(request, session,invokingControllerName);
+				addToken(request, session);
 			} else if (handlerMethod.getMethodAnnotation(CheckToken.class) != null) {
 				final BindingResult bindingResult = getBindingResult(modelAndView);
 				if (bindingResult != null && !bindingResult.hasErrors()) {
-					removeToken(request,session);
+					synchronized (session) {
+						removeToken(request,session);
+					}
 				} else {
-					addToken(request, session, invokingControllerName);
+					synchronized (session) {
+						addToken(request, session);
+					}
 				}
 			}  
 		}
@@ -72,8 +75,8 @@ public class FormTokenInterceptor extends HandlerInterceptorAdapter {
 		return null;
 	}
 
-	private void addToken(final HttpServletRequest request, final HttpSession session, final String className) {
-			final String tokenName = className+"_"+ RandomStringUtils.randomAlphanumeric(5);
+	private void addToken(final HttpServletRequest request, final HttpSession session) {
+			final String tokenName = RandomStringUtils.randomAlphanumeric(10);
 			final String tokenValue = UUID.randomUUID().toString();
 			OrphenTokenRemoverTask.scheduleForRemoval(session, tokenName);
 			request.setAttribute(TOKEN_NAME, tokenName);
