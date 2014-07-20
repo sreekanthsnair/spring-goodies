@@ -101,6 +101,7 @@ public class FormTokenInterceptor extends HandlerInterceptorAdapter {
 				public void run() {
 					try { session.removeAttribute(tokenName); } catch(Exception e) {/*ignore this exception this, can occurred due to invalidated session*/}
 					this.cancel();
+					ORPHEN_TOKEN_REMOVAL_SCHEDULER.purge();
 				}
 			} ;
 			ORPHEN_TOKEN_REMOVAL_SCHEDULER.schedule(tokenRemover,ORPHEN_TOKEN_REMOVAL_DELAY);
